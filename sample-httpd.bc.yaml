@@ -1,0 +1,40 @@
+apiVersion: v1
+kind: BuildConfig
+metadata:
+  labels:
+    app: sample-httpd
+  name: sample-httpd
+spec:
+  output:
+    to:
+      kind: ImageStreamTag
+      name: sample-httpd:latest
+  postCommit: {}
+  runPolicy: Serial
+  source:
+    dockerfile: |
+      FROM rhel7:latest
+      
+      RUN yum -y install \
+        --enablerepo=rhel-7-server-optional-rpms \
+        --enablerepo=rhel-7-server-extras-rpms \
+        httpd
+      
+      # Set up permissions
+      RUN chmod a+rwX -R /var/log/httpd /run/httpd
+      RUN sed -i -e 's/^Listen .*/Listen 8080/' /etc/httpd/conf/httpd.conf
+      
+      RUN echo "Sample Web Server" > /var/www/html/index.html
+      EXPOSE 8080
+      
+      # Start the service
+      CMD ["-D", "FOREGROUND"]
+      ENTRYPOINT ["/usr/sbin/httpd"]
+    type: Dockerfile
+  strategy:
+    dockerStrategy:
+      from:
+        kind: ImageStreamTag
+        name: rhel7:latest
+        namespace: openshift
+    type: Docker

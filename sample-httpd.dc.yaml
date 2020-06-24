@@ -1,0 +1,39 @@
+apiVersion: v1
+kind: DeploymentConfig
+metadata:
+  labels:
+    app: sample-httpd
+  name: sample-httpd
+spec:
+  replicas: 2
+  strategy:
+    type: Rolling
+  template:
+    metadata:
+      labels:
+        app: sample-httpd
+      name: sample-httpd
+    spec:
+      containers:
+        - name: sample-httpd
+          image: "sample-httpd"
+          ports:
+            - containerPort: 8080
+              protocol: "TCP"
+          resources:
+            requests:
+              cpu: 100m
+              memory: 1Gi
+            limits:
+              cpu: 1
+              memory: 1Gi
+  test: false
+  triggers:
+    - type: ImageChange
+      imageChangeParams:
+        automatic: true
+        containerNames:
+          - sample-httpd
+        from:
+          kind: ImageStreamTag
+          name: sample-httpd:latest
